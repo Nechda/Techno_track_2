@@ -124,7 +124,7 @@ class Array
             \param   [in]  e   Код ошибки, который требуется расшифровать
             \return  Поясняющая строка
         */
-        static const char* errToStr(ARR_Error e) const
+        static const char* errToStr(ARR_Error e)
         {
             switch (e)
             {
