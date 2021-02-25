@@ -12,6 +12,9 @@
     #define DEBUG_CODE( code ) 
 #endif
 
+/**
+\brief  Описание возможных состояний массива
+*/
 enum class ARR_Error
 {
     ARR_OK,
@@ -22,7 +25,9 @@ enum class ARR_Error
     ARR_NULLPTR_IN_THIS
 };
 
-
+/**
+\brief  Шаблонная реализация массива фиксированной длины
+*/
 template<typename T,size_t size_arr>
 class Array
 {
@@ -32,6 +37,13 @@ class Array
         T m_data[size_arr];
         DEBUG_CODE(uint64_t RIGHT_CANARY = MAGIC_VALUE);
         DEBUG_CODE(Hash m_hash);
+
+        /**
+            \brief   Функция производит проверку целостности стркутуры
+            \details Функция проиводит проверку целостности структуры
+                     и в случае нарушения целостности кидает исключение
+                     с информацией об ошибке.
+        */
         void statusCheker()
         {
             ARR_Error stat = status();
@@ -40,10 +52,14 @@ class Array
             throw std::exception(errToStr(stat));
         }
     public:
+        
+        ///Конструктор по-умолчанию 
         Array() : m_data()
         {
             DEBUG_CODE(updateHash());
         }
+
+        ///Конструктор копирования
         Array(const Array<T, size_arr>& other)
         {
             for (size_t i = 0; i < size_arr; i++)
@@ -51,6 +67,8 @@ class Array
 
             DEBUG_CODE(updateHash());
         }
+
+        ///Оператор присваивания
         Array<T, size_arr>& operator = (const Array<T, size_arr>& other)
         {
             for (size_t i = 0; i < size_arr; i++)
@@ -59,10 +77,24 @@ class Array
             return *this;
         }
         ~Array() {};
-        size_t size()
-        {
-            return size_arr;
-        }
+
+
+        /**
+            \breif    Метод возвращает размер массива
+            \return   Размер массива
+        */
+        size_t size() const {return size_arr;}
+
+
+        /**
+            \brief   Метод обращается к элементу массива с проверкой
+                     выхода за границы
+            \param   [in]  index  Индекс элемента в массиве
+            \return  Возвращает ссылку на элемент массива
+            \note    Если происходит выход за границы, то бросается
+                     std::out_of_range. В случае повреждения структуры
+                     бросается std::exception с информацией об ошибке.
+        */
         T& at(size_t index)
         {
             statusCheker();
@@ -70,13 +102,29 @@ class Array
                 throw std::out_of_range("Out of range. Index is: " + std::to_string(index));
             return m_data[index];
         }
+
+
+        /**
+            \brief   Оператор []
+            \param   [in]  index  Индекс элемента в массиве
+            \return  Возвращает ссылку на элемент массива
+            \note    Данный метод не проверяет выход за пределы массива.
+                     В случае повреждения структуры бросается 
+                     std::exception с информацией об ошибке.
+        */
         T& operator [](size_t index)
         {
             statusCheker();
             return m_data[index];
         }
 
-        static const char* errToStr(ARR_Error e)
+
+        /**
+            \brief   Функция генерит поясняющую строку к коду ошибки
+            \param   [in]  e   Код ошибки, который требуется расшифровать
+            \return  Поясняющая строка
+        */
+        static const char* errToStr(ARR_Error e) const
         {
             switch (e)
             {
@@ -94,8 +142,15 @@ class Array
                     return "Undefined error";
             }
         }
-         
-        ARR_Error status()
+        
+
+        /**
+            \brief   Функция проверяет целостность массива
+            \return  Код ошибки, если структура повреждена
+            \note    Если структура целая, то возвращается
+                     ARR_Error::ARR_OK;
+        */
+        ARR_Error status() const
         {
             #ifndef NDEBUG
                 if (this == nullptr)
@@ -116,7 +171,15 @@ class Array
         }
 
         #ifndef NDEBUG
-        void dump()
+
+
+        /**
+            \brief   Функция печати полной информации о структуре
+                     на экран
+            \note    Требуется наличие преопределенного оператора
+                     вывода.
+        */
+        void dump() const
         {
             printf("~~~Dumping~~~\n");
             printf("Array<%s,%d>{\n", typeid(T).name(), size_arr);
@@ -134,6 +197,10 @@ class Array
             printf("~~~End~~~\n");
         }
 
+
+        /**
+            \brief   Функция пересчета хеша для данных
+        */
         void updateHash()
         {
             m_hash = getHash(m_data, sizeof(T) * size_arr);
