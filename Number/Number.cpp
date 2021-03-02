@@ -186,7 +186,7 @@ std::ostream& operator << (std::ostream& out, const Number& num)
 Number operator + (const Number& lhs, const Number& rhs)
 {$
     ADDITION_PRINT(
-        print_info_about_operator(lhs, rhs, '+');
+        print_info_about_operator(lhs, rhs, "+");
     )
 
     if(!&lhs || !&rhs)
@@ -215,7 +215,7 @@ Number operator + (const Number& lhs, const Number& rhs)
 Number operator - (const Number& lhs, const Number& rhs)
 {$
     ADDITION_PRINT(
-        print_info_about_operator(lhs, rhs, '-');
+        print_info_about_operator(lhs, rhs, "-");
     )
 
     if(!&lhs || !&rhs)
@@ -243,7 +243,7 @@ Number operator - (const Number& lhs, const Number& rhs)
 Number operator * (const Number& lhs, const Number& rhs)
 {$
     ADDITION_PRINT(
-        print_info_about_operator(lhs, rhs, '*');
+        print_info_about_operator(lhs, rhs, "*");
     )
 
     if(!&lhs || !&rhs)
@@ -271,7 +271,7 @@ Number operator * (const Number& lhs, const Number& rhs)
 Number operator / (const Number& lhs, const Number& rhs)
 {$
     ADDITION_PRINT(
-        print_info_about_operator(lhs, rhs, '/');
+        print_info_about_operator(lhs, rhs, "/");
     )
 
     if(!&lhs || !&rhs)
