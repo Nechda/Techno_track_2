@@ -28,7 +28,8 @@ static void t_sorting()
         arr[i] = random();
 
     Number tmp;
-    for(Number i = 0; i < Number(ARRAY_SIZE - 1); i++)
+    Number max_i = Number(ARRAY_SIZE - 1);
+    for(Number i = 0; i < max_i; i++)
         for(Number j = i + 1; j < Number(ARRAY_SIZE); j++)
             if (arr[i64(i)] > arr[i64(j)])
             {
@@ -38,7 +39,7 @@ static void t_sorting()
             }
 
     bool flag = 0;
-    for (Number i = 0; i < Number(ARRAY_SIZE - 1) && !flag; i++)
+    for (Number i = 0; i < max_i && !flag; i++)
         if (arr[i64(i)] > arr[i64(i) + 1])
             flag |= 1;
 
@@ -381,6 +382,7 @@ void testing_INT()
     catch (std::exception& e)
     {
         throw ChainException("Failed division by zero test", DEBUG_LOCATION_GEN, new exception(e));
+        //#define CHAINEXCEPTION(msg, ...) ChainException(msg, DEBUG_LOCATION_GEN, ##__VA_ARGS__ )
     }
 
 

@@ -2,7 +2,10 @@
 #include "Tools/Console.h"
 
 using namespace std;
+using namespace dot;
 
+i64 Number::nOpration = 0;
+i64 Number::nObjects = 0;
 i64 Number::nAliveObjects = 0;
 i64 Number::nOparationsLeft = 2; /// ограничение на количество операций приведения типа 
 
@@ -18,13 +21,13 @@ static inline void print_info_about_operator(
     const char* str
 )
 {
-    cout << YELLOW << Margin(__stack_level);
-    printf("~~~>operator %s (Number& = [%p], Number& = [%p])\n", str, &lhs, &rhs);
+    cout << YELLOW << Margin(StackTracer::stack_level);
+    printf("operator %s (Number& = [%p], Number& = [%p])\n", str, &lhs, &rhs);
     $_
-        cout << LIGHTMAGENTA << Margin(__stack_level);
+        cout << LIGHTMAGENTA << Margin(StackTracer::stack_level);
         printf("|-->");
         lhs.dump();
-        cout << LIGHTMAGENTA << Margin(__stack_level);
+        cout << LIGHTMAGENTA << Margin(StackTracer::stack_level);
         printf("+-->");
         rhs.dump();
     $$_
@@ -39,7 +42,7 @@ void Number::checkStatus()
 {
     if (this == nullptr)
         throw std::exception("this contain nullptr!");
-    if (isOverflow)
+    if (m_isOverflow)
         throw std::exception("overflowing!\n");
 }
 
@@ -55,41 +58,49 @@ void Number::dump() const
 /**
     \brief Конструктор копирования
 */
-Number::Number(const Number& other)
-{$
+Number::Number(const Number& other, ADDITION_PARAM(std::string name))
+{$ $PRNT
+    m_name = name;
+    m_id = nObjects++;
     checkStatus();
+    m_number = other.m_number;
     ADDITION_PRINT(
-        cout << GREEN << Margin(__stack_level);
-        printf("~~~>ctor(Number& = [%p]) this=", &other);
+        createNode(*this,"copy ctor()");
+        createLine(other, *this);
+        cout << GREEN << Margin(StackTracer::stack_level);
+        printf("ctor(Number& = [%p]) this=", &other);
         dump();
         $_
-            cout << LIGHTMAGENTA << Margin(__stack_level);
+            cout << LIGHTMAGENTA << Margin(StackTracer::stack_level);
             printf("+-->");
             other.dump();
         $$_
     )
-    m_number = other.m_number;
 }
 
 /**
     \brief Оператор присваивания
 */
 Number& Number::operator = (const Number& other)
-{$
+{$ $PRNT
     checkStatus();
     if(this == &other)
         return *this;
+    m_number = other.m_number;
     ADDITION_PRINT(
-        cout << CYAN << Margin(__stack_level);
-        printf("~~~>operator = (Number& = [%p]) this=", &other);
+        m_nStage++;
+        createNode(*this);
+
+        createOperator(*this, other, "operator =");
+        cout << CYAN << Margin(StackTracer::stack_level);
+        printf("operator = (Number& = [%p]) this=", &other);
         dump();
         $_
-            cout << LIGHTMAGENTA << Margin(__stack_level);
+            cout << LIGHTMAGENTA << Margin(StackTracer::stack_level);
             printf("+-->");
             other.dump();
         $$_
     )
-    m_number = other.m_number;
     return *this;
 }
 
@@ -97,14 +108,14 @@ Number& Number::operator = (const Number& other)
     \brief Оператор постфиксного инкремента
 */
 Number Number::operator ++ (int)
-{$
+{$ $PRNT
     checkStatus();
     ADDITION_PRINT(
-        cout << YELLOW << Margin(__stack_level);
-        printf("~~~>operator ++ (int) this=");
+        cout << YELLOW << Margin(StackTracer::stack_level);
+        printf("operator ++ (int) this=");
         dump();
     )
-    isOverflow |= std::numeric_limits<i64>::max() == m_number;
+    m_isOverflow |= std::numeric_limits<i64>::max() == m_number;
     checkStatus();
     m_number++;
     return Number(m_number - 1);
@@ -114,14 +125,14 @@ Number Number::operator ++ (int)
     \brief Оператор префиксного инкремента
 */
 Number Number::operator ++ ()
-{$
+{$ $PRNT
     checkStatus();
     ADDITION_PRINT(
-        cout << YELLOW << Margin(__stack_level);
-        printf("~~~>operator ++ () this=");
+        cout << YELLOW << Margin(StackTracer::stack_level);
+        printf("operator ++ () this=");
         dump();
     )
-    isOverflow |= std::numeric_limits<i64>::max() == m_number;
+    m_isOverflow |= std::numeric_limits<i64>::max() == m_number;
     checkStatus();
     m_number++;
     return *this;
@@ -132,14 +143,14 @@ Number Number::operator ++ ()
     \brief Оператор постфиксного декремента
 */
 Number Number::operator -- (int)
-{$
+{$ $PRNT
     checkStatus();
     ADDITION_PRINT(
-        cout << YELLOW << Margin(__stack_level);
-        printf("~~~>operator -- (int) this=");
+        cout << YELLOW << Margin(StackTracer::stack_level);
+        printf("operator -- (int) this=");
         dump();
     )
-    isOverflow |= std::numeric_limits<i64>::min() == m_number;
+    m_isOverflow |= std::numeric_limits<i64>::min() == m_number;
     checkStatus();
     m_number--;
     return Number(m_number + 1);
@@ -149,14 +160,14 @@ Number Number::operator -- (int)
     \brief Оператор префиксного декремента
 */
 Number Number::operator -- ()
-{$
+{$ $PRNT
     checkStatus();
     ADDITION_PRINT(
-        cout << YELLOW << Margin(__stack_level);
-        printf("~~~>operator -- () this=");
+        cout << YELLOW << Margin(StackTracer::stack_level);
+        printf("operator -- () this=");
         dump();
     )
-    isOverflow |= std::numeric_limits<i64>::min() == m_number;
+    m_isOverflow |= std::numeric_limits<i64>::min() == m_number;
     checkStatus();
     m_number--;
     return *this;
@@ -184,8 +195,9 @@ std::ostream& operator << (std::ostream& out, const Number& num)
            тоже бросается исключение.
 */
 Number operator + (const Number& lhs, const Number& rhs)
-{$
+{$ $PRNT
     ADDITION_PRINT(
+        createOperator(lhs, rhs, "operator +");
         print_info_about_operator(lhs, rhs, "+");
     )
 
@@ -199,7 +211,6 @@ Number operator + (const Number& lhs, const Number& rhs)
     if(isOverflow)
         throw std::exception("operator + lead to overflowing!");
 
-    
     return Number(lhs.m_number + rhs.m_number);
 }
 
@@ -213,8 +224,9 @@ Number operator + (const Number& lhs, const Number& rhs)
            тоже бросается исключение.
 */
 Number operator - (const Number& lhs, const Number& rhs)
-{$
+{$ $PRNT
     ADDITION_PRINT(
+        createOperator(lhs, rhs, "operator -");
         print_info_about_operator(lhs, rhs, "-");
     )
 
@@ -241,8 +253,9 @@ Number operator - (const Number& lhs, const Number& rhs)
            тоже бросается исключение.
 */
 Number operator * (const Number& lhs, const Number& rhs)
-{$
+{$ $PRNT
     ADDITION_PRINT(
+        createOperator(lhs, rhs, "operator *");
         print_info_about_operator(lhs, rhs, "*");
     )
 
@@ -269,8 +282,9 @@ Number operator * (const Number& lhs, const Number& rhs)
            тоже бросается исключение.
 */
 Number operator / (const Number& lhs, const Number& rhs)
-{$
+{$ $PRNT
     ADDITION_PRINT(
+        createOperator(lhs, rhs, "operator /");
         print_info_about_operator(lhs, rhs, "/");
     )
 

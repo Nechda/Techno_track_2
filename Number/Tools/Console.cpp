@@ -20,7 +20,7 @@ std::ostream& operator<<(std::ostream& os, const ConsoleColour &c)
 
 std::ostream& operator<<(std::ostream& os, const Margin& m)
 {
-    for (int i = 0; i < m.m_level; i++)
-        os << "    ";
+    printf("%*s", m.m_level << 2, "");
+    fflush(stdout);
     return os;
 }

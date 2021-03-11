@@ -28,7 +28,7 @@ private:
 #if _MSC_VER
     #define DEBUG_LOCATION_GEN DebugLocation(__FILE__, __FUNCSIG__, __LINE__)
 #else
-    #define DEBUG_LOCATION_GEN(__FILE__, __FUNCTION__, __LINE__)
+    #define DEBUG_LOCATION_GEN DebugLocation(__FILE__, __FUNCTION__, __LINE__)
 #endif
 
 
